@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int         @id @default(autoincrement())
+  name           String      @unique
+  email          String      @unique
+  hashedPassword String
+  carvings       Carving[]   @relation(name: "UserCarvings")
+  cart           Cart[]
+  favorite       Favorites[]
+  purchases      Purchases[]
+  Carving        Carving[]
+}
+
+model Carving {
+  id                  Int         @id @default(autoincrement())
+  image               String
+  carvingName         String
+  userId              Int
+  user                User        @relation(name: "UserCarvings", fields: [userId], references: [id])
+  carverName          String
+  carver              User        @relation(fields: [carverName], references: [name])
+  availableToPurchase Boolean
+  story               String
+  type                String
+  price               Int
+  qty                 Int
+  Cart                Cart[]
+  Favorites           Favorites[]
+  Purchases           Purchases?  @relation(fields: [purchasesId], references: [id])
+  purchasesId         Int?
+}
+
+model Cart {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  carvingId Int
+  carving   Carving @relation(fields: [carvingId], references: [id])
+  qty       Int
+  User      User    @relation(fields: [userId], references: [id])
+}
+
+model Favorites {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  carvingId Int
+  carving   Carving @relation(fields: [carvingId], references: [id])
+}
+
+model Purchases {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  carving      Carving[]
+  name         String
+  address      String
+  city         String
+  state        String
+  zip          Int
+  cardType     String
+  cardNumbers  Int
+  expMonthDate String
+  expYearDate  Int
+  user         User      @relation(fields: [userId], references: [id])
+  total        Int
+}
