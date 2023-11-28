@@ -70,7 +70,7 @@ model Purchases {
   cardType     String
   cardNumbers  Int
   expMonthDate String
-  expYearDate  Int
+  expYearDate  String
   user         User      @relation(fields: [userId], references: [id])
   total        Int
 }

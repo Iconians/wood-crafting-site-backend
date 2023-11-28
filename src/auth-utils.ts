@@ -17,6 +17,7 @@ export const comparePassword = (password: string, hash: string) => {
 
 export const createUnsecuredUserInfo = (user: User) => {
   return {
+    id: user.id,
     email: user.email,
     name: user.name,
   };

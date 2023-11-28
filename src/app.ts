@@ -3,6 +3,8 @@ import express from "express";
 import dotenv from "dotenv";
 import { carvingsController } from "./router/carvings.router";
 import { authcontroller } from "./router/auth.router";
+import cors from "cors";
+import { userController } from "./router/user.router";
 
 dotenv.config();
 
@@ -30,11 +32,14 @@ declare global {
 const app = express();
 app.use(express.json());
 
+app.use(cors());
+
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
 app.use(authcontroller);
 app.use(carvingsController);
+app.use(userController);
 
 app.listen(3000);
