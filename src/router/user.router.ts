@@ -51,8 +51,7 @@ userController.post(
       userId: z.number(),
     }),
   }),
-  // authMiddleWare,
-  // try when first looged in to see if it works
+  authMiddleWare,
   async (req, res) => {
     const {
       image,
@@ -64,7 +63,6 @@ userController.post(
       userId,
       carverName,
     } = req.body;
-    console.log(req.body);
     if (!userId)
       return res.status(401).json({
         message: "User not found, need to be logged in to upload a carving",
@@ -113,57 +111,79 @@ userController.delete(
 );
 
 // put carving in user cart
-userController.post("/user/cart", authMiddleWare, async (req, res) => {
-  const { carvingId, userId } = req.body;
-  const carving = await prisma.carving.findFirst({
-    where: {
-      id: Number(carvingId),
-    },
-  });
-  if (!carving) return res.status(401).json({ message: "Carving not found" });
-  const user = await prisma.user.findFirst({
-    where: {
-      id: Number(userId),
-    },
-  });
-  if (!user) return res.status(401).json({ message: "User not found" });
-  const cart = await prisma.cart.create({
-    data: {
-      userId: user.id,
-      carvingId: carving.id,
-      qty: carving.qty,
-    },
-  });
-  return res.json(cart);
-});
+userController.post(
+  "/user/cart",
+  validateRequest({
+    body: z.object({
+      carvingId: z.number(),
+      userId: z.number(),
+    }),
+  }),
+  authMiddleWare,
+  async (req, res) => {
+    const { carvingId, userId } = req.body;
+    const carving = await prisma.carving.findFirst({
+      where: {
+        id: Number(carvingId),
+      },
+    });
+
+    const isIncart = await prisma.cart.findFirst({
+      where: {
+        carvingId: Number(carvingId),
+      },
+    });
+
+    if (!carving) return res.status(401).json({ message: "Carving not found" });
+    if (carving.qty === 0)
+      return res.status(401).json({ message: "Carving out of stock" });
+    if (isIncart !== null)
+      return res.status(401).json({ message: "Carving already in cart" });
+
+    const user = await prisma.user.findFirst({
+      where: {
+        id: Number(userId),
+      },
+    });
+    if (!user) return res.status(401).json({ message: "User not found" });
+    const cart = await prisma.cart.create({
+      data: {
+        userId: user.id,
+        carvingId: carving.id,
+        qty: carving.qty,
+      },
+    });
+    return res.json(cart);
+  }
+);
 
 // get users cart
 userController.get("/user/cart/:id", async (req, res) => {
   const { id } = req.params;
+  if (!parseInt(id)) return res.status(401).json({ message: "User not found" });
   const cart = await prisma.cart.findMany({
     where: {
       userId: parseInt(id),
     },
   });
 
-  return res.json(cart);
-});
-
-// delete carving from cart
-userController.delete("/user/cart/:id", async (req, res) => {
-  const { id } = req.params;
-  const cart = await prisma.cart.delete({
+  const carvings = await prisma.carving.findMany({
     where: {
-      id: Number(id),
+      id: {
+        in: cart.map((cart) => {
+          return cart.carvingId;
+        }),
+      },
     },
   });
-  return res.json(cart);
+
+  return res.json(carvings);
 });
 
 // get users favorites
 userController.get("/user/favorites/:id", async (req, res) => {
   const { id } = req.params;
-  console.log(id);
+  if (!parseInt(id)) return res.status(401).json({ message: "User not found" });
   const favorites = await prisma.favorites.findMany({
     where: {
       userId: parseInt(id),
@@ -175,6 +195,10 @@ userController.get("/user/favorites/:id", async (req, res) => {
 // add carving to favorites
 userController.post("/user/favorites", async (req, res) => {
   const { carvingId, userId } = req.body;
+  if (!carvingId || !userId)
+    return res
+      .status(401)
+      .json({ message: "User not found need to be logged in" });
   const carving = await prisma.carving.findFirst({
     where: {
       id: Number(carvingId),
@@ -204,6 +228,7 @@ userController.delete("/user/favorites/:id/:userId", async (req, res) => {
   const favorite = await prisma.favorites.findFirst({
     where: {
       carvingId: parseInt(id),
+      userId: parseInt(userId),
     },
   });
 
@@ -231,19 +256,20 @@ userController.post(
   validateRequest({
     body: z.object({
       userId: z.number(),
-      carvingId: z.array(z.number()).min(1),
+      carvingId: z.array(z.number()),
       name: z.string(),
       address: z.string(),
       city: z.string(),
       state: z.string(),
-      zip: z.number(),
+      zip: z.string(),
       cardType: z.string(),
-      cardNumbers: z.number(),
+      cardNumbers: z.string(),
       expMonthDate: z.string(),
       expYearDate: z.string(),
       total: z.number(),
     }),
   }),
+  authMiddleWare,
   async (req, res) => {
     const {
       userId,
@@ -277,6 +303,14 @@ userController.post(
       carvings.push(findIds);
     }
 
+    // check qty of carving in cart and if it is available to purchase
+    for (const carving of carvings) {
+      if (carving.qty === 0)
+        return res.status(401).json({ message: "Carving out of stock" });
+      if (!carving.availableToPurchase)
+        return res.status(401).json({ message: "Carving not available" });
+    }
+
     if (!carvings.length)
       return res.status(401).json({ message: "Carving not found" });
 
@@ -290,9 +324,9 @@ userController.post(
         address: address,
         city: city,
         state: state,
-        zip: zip,
+        zip: parseInt(zip),
         cardType: cardType,
-        cardNumbers: cardNumbers,
+        cardNumbers: parseInt(cardNumbers),
         expMonthDate: expMonthDate,
         expYearDate: expYearDate,
         total: total,
@@ -302,15 +336,23 @@ userController.post(
   }
 );
 
-// delete cart items
+// delete all cart items
 userController.delete("/user/cart/:id", async (req, res) => {
   const { id } = req.params;
-  const cart = await prisma.cart.delete({
+
+  const findCart = await prisma.cart.findFirst({
     where: {
-      id: Number(id),
+      userId: Number(id),
     },
   });
-  return res.json(cart);
+  if (!findCart) return res.status(401).json({ message: "Cart not found" });
+
+  const cart = await prisma.cart.deleteMany({
+    where: {
+      userId: Number(id),
+    },
+  });
+  return res.json({ deleted: cart.count });
 });
 
 export { userController };

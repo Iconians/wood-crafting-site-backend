@@ -21,17 +21,14 @@ authcontroller.post(
   }),
   async (req, res) => {
     const { email, password } = req.body;
-    console.log(email, password);
     if (!res) {
       throw new Error("Response is undefined");
     }
-    console.log("after 1st if");
     const user = await prisma.user.findFirst({
       where: {
         email,
       },
     });
-    console.log(user);
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
@@ -71,7 +68,6 @@ authcontroller.post(
     if (user) {
       return res.status(401).json({ message: "User already exists" });
     }
-    console.log(user);
     const newUser = await prisma.user.create({
       data: {
         email,
