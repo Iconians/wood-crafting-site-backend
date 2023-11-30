@@ -46,7 +46,7 @@ authcontroller.post(
   }
 );
 
-// make sign up controller
+// sign up endpoint
 authcontroller.post(
   "/signup",
   validateRequest({

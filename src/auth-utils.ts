@@ -5,6 +5,14 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { prisma } from "../prisma/db.setup";
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: User;
+    }
+  }
+}
+
 const saltRounds = 11;
 
 export const encryptPassword = (password: string) => {

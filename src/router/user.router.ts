@@ -7,34 +7,6 @@ import { Carving } from "@prisma/client";
 
 const userController = Router();
 
-// update user patch
-userController.patch(
-  "/user/:id",
-  validateRequest({
-    body: z.object({
-      name: z.string(),
-      email: z.string().email(),
-      password: z.string(),
-    }),
-  }),
-  authMiddleWare,
-  async (req, res) => {
-    const { name, email, password } = req.body;
-    const { id } = req.params;
-    const user = await prisma.user.update({
-      where: {
-        id: Number(id),
-      },
-      data: {
-        name: name,
-        email: email,
-        hashedPassword: password,
-      },
-    });
-    return res.json(user);
-  }
-);
-
 // upload carving
 userController.post(
   "/user/upload",
@@ -94,21 +66,6 @@ userController.get("/user/carvings/:id", async (req, res) => {
   });
   return res.json(carvings);
 });
-
-// delete carving
-userController.delete(
-  "/user/carvings/:id",
-  authMiddleWare,
-  async (req, res) => {
-    const { id } = req.params;
-    const carving = await prisma.carving.delete({
-      where: {
-        id: Number(id),
-      },
-    });
-    return res.json(carving);
-  }
-);
 
 // put carving in user cart
 userController.post(
@@ -250,7 +207,6 @@ userController.delete("/user/favorites/:id/:userId", async (req, res) => {
 });
 
 // purchase carving
-
 userController.post(
   "/user/purchase",
   validateRequest({
@@ -303,6 +259,20 @@ userController.post(
       carvings.push(findIds);
     }
 
+    if (
+      !name ||
+      !address ||
+      !city ||
+      !state ||
+      !zip ||
+      !cardType ||
+      !cardNumbers ||
+      !expMonthDate ||
+      !expYearDate ||
+      !total
+    )
+      return res.status(401).json({ message: "All feilds must be filled out" });
+
     // check qty of carving in cart and if it is available to purchase
     for (const carving of carvings) {
       if (carving.qty === 0)
@@ -332,6 +302,18 @@ userController.post(
         total: total,
       },
     });
+
+    // update qty of carvings
+    for (const carving of carvings) {
+      await prisma.carving.update({
+        where: {
+          id: carving.id,
+        },
+        data: {
+          qty: carving.qty - 1,
+        },
+      });
+    }
     return res.json(purchase);
   }
 );

@@ -2,6 +2,9 @@ import { encryptPassword } from "../src/auth-utils";
 import { prisma } from "./db.setup";
 
 const clearDb = async () => {
+  await prisma.favorites.deleteMany();
+  await prisma.purchases.deleteMany();
+  await prisma.cart.deleteMany();
   await prisma.carving.deleteMany();
   await prisma.user.deleteMany();
 };
@@ -29,7 +32,7 @@ const seedDb = async () => {
   const clayton = await prisma.user.create({
     data: {
       name: "Clayton Junior",
-      email: "clayto@clayton.com",
+      email: "clayton@clayton.com",
       hashedPassword: await encryptPassword("clayton_password"),
     },
   });
