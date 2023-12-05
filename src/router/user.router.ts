@@ -90,7 +90,6 @@ userController.post(
         carvingId: Number(carvingId),
       },
     });
-
     if (!carving) return res.status(401).json({ message: "Carving not found" });
     if (carving.qty === 0)
       return res.status(401).json({ message: "Carving out of stock" });
@@ -317,6 +316,34 @@ userController.post(
     return res.json(purchase);
   }
 );
+
+// delete selected carving from cart
+userController.delete("/user/cart/:id/:userId", async (req, res) => {
+  const { id, userId } = req.params;
+
+  const cart = await prisma.cart.findFirst({
+    where: {
+      carvingId: parseInt(id),
+      userId: parseInt(userId),
+    },
+  });
+
+  if (!cart) {
+    return res.status(404).json({ message: "Carving not found" });
+  }
+
+  if (cart.userId !== parseInt(userId)) {
+    return res.status(403).json({ message: "Unauthorized" });
+  }
+
+  const deletedCart = await prisma.cart.delete({
+    where: {
+      id: cart.id,
+    },
+  });
+
+  return res.json(deletedCart);
+});
 
 // delete all cart items
 userController.delete("/user/cart/:id", async (req, res) => {
