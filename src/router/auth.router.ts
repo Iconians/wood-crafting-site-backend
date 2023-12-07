@@ -9,9 +9,9 @@ import {
   encryptPassword,
 } from "../auth-utils";
 
-const authcontroller = Router();
+const authController = Router();
 
-authcontroller.post(
+authController.post(
   "/login",
   validateRequest({
     body: z.object({
@@ -39,15 +39,15 @@ authcontroller.post(
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    const userinfo = createUnsecuredUserInfo(user);
+    const userInfo = createUnsecuredUserInfo(user);
     const token = createAuthTokenForUser(user);
 
-    return res?.status(200).json({ userinfo, token });
+    return res?.status(200).json({ userinfo: userInfo, token });
   }
 );
 
 // sign up endpoint
-authcontroller.post(
+authController.post(
   "/signup",
   validateRequest({
     body: z.object({
@@ -83,4 +83,4 @@ authcontroller.post(
   }
 );
 
-export { authcontroller };
+export { authController as authController };

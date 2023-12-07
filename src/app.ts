@@ -2,7 +2,7 @@ import { User } from "@prisma/client";
 import express from "express";
 import dotenv from "dotenv";
 import { carvingsController } from "./router/carvings.router";
-import { authcontroller } from "./router/auth.router";
+import { authController } from "./router/auth.router";
 import cors from "cors";
 import { userController } from "./router/user.router";
 
@@ -38,7 +38,7 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-app.use(authcontroller);
+app.use(authController);
 app.use(carvingsController);
 app.use(userController);
 

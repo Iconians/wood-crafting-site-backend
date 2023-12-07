@@ -1,1 +1,12 @@
-this is the backend of of my woodcrafting site, it is a simple api that allows for the creation of users, and the creation of projects and to sell them if they desire. It is built using node.js, express, sqlite and prisma as an orm. It is currently in development and is not yet ready for production use.
+# this is the backend of of my wood crafting site
+
+This is a simple api that allows for the creation of users, and to upload and list their carvings for others to see and enjoy and if the carver has a desire he could list the carving for sale.
+
+## It is built using the following technologies
+
+* node.js
+* express
+* sqlite3
+* prisma as an orm
+
+It is currently in development and is not yet ready for production use
