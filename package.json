@@ -2,7 +2,7 @@
   "scripts": {
     "dev": "nodemon",
     "seed": "ts-node prisma/seed.ts",
-    "start": "node app.ts",
+    "start": "node ./src/app.ts",
     "heroku-postbuild": "tsc"
   },
   "dependencies": {
