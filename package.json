@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "scripts": {
     "dev": "nodemon",
     "seed": "ts-node prisma/seed.ts",
