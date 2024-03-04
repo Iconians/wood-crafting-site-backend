@@ -3,8 +3,7 @@
   "scripts": {
     "dev": "nodemon",
     "seed": "ts-node prisma/seed.ts",
-    "start": "node ./src/app.ts",
-    "heroku-postbuild": "tsc"
+    "start": "node ./src/app.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.6.0",
