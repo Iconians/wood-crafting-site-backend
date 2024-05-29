@@ -8,5 +8,3 @@ This is a simple api that allows for the creation of users, and to upload and li
 * express
 * sqlite3
 * prisma as an orm
-
-It is currently in development and is not yet ready for production use
