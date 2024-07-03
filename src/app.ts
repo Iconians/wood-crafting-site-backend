@@ -7,7 +7,7 @@ import cors from "cors";
 import { userController } from "./router/user.router";
 
 dotenv.config();
-// note I made to commit this to have commits on github tracker
+// note I made to commit this to have commits on github
 
 declare global {
   namespace Express {
